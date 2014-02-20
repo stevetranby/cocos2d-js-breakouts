@@ -2,6 +2,8 @@
 
 A Cocos2d-html implementation of the breakouts tutorial game.
 
+All of the Breakouts are up and playable at this project's [website](http://jsbreakouts.org/)
+
 ## Overview
 
 This is a sample breakout game written in Cocos2D HTML. The latest version is 2.2.2 and this will be updated or forked when 3.0 is released. This version is built to run in both desktop and mobile browsers, but can also be used as the basis for native Android/iOS/Mac/Win7/WinRT/Linux (TODO: need to confirm platform support) apps with only a few modifictions using the Javascript Bindings (jsb) supported with Mozilla's SpiderMonkey Javscript engine.
