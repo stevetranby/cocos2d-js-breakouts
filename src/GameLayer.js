@@ -1,7 +1,7 @@
 // Globals, could move into G object or move into GameLayer class
 var ZORDER_BOARD = 0;
 var ZORDER_BRICKS = 1;
-var ZORDER_BALL = 1;
+var ZORDER_BALL = 2;
 var ZORDER_PLAYER = 3;
 var ZORDER_HUD = 10;
 
@@ -60,13 +60,13 @@ var GameLayer = cc.Layer.extend({
     this._super();
 
     console.log("enter");
-    
+
     // TODO: check for keyboard support using platform info
     if (this.setKeyboardEnabled)
       this.setKeyboardEnabled(true);
-    
+
     // TODO: add mouse support for hover move (when no buttons down)
-    if(this.setMouseEnabled)
+    if (this.setMouseEnabled)
       this.setMouseEnabled(true);
 
     this.scheduleUpdate();
@@ -94,7 +94,9 @@ var GameLayer = cc.Layer.extend({
 
       var n = this.balls.length;
       for (var i = 0; i < n; i++) {
-        this.balls[i].update(dt);
+        var ball = this.balls[i];
+        if(ball)
+          ball.update(dt);
       }
 
       n = this.powerups.length;
@@ -120,9 +122,9 @@ var GameLayer = cc.Layer.extend({
         cc.ArrayRemoveObject(this.balls, ball);
       }
     }
-    for (var i = 0; i < this.balls.length; i++) {
-      var ball = this.balls[i];
-      if (ball && !ball.isActive) {
+    for (var i = 0; i < this.bricks.length; i++) {
+      var brick = this.balls[i];
+      if (brick && !brick.isActive) {
         cc.ArrayRemoveObject(this.bricks, brick);
       }
     }
@@ -170,9 +172,8 @@ var GameLayer = cc.Layer.extend({
   onMouseMoved: function(event) {
     this.movePlayer(event.getLocation());
   },
-  
-  onScrollWheel: function(event) {
-  },
+
+  onScrollWheel: function(event) {},
 
   // touches contains location in screen coords (luckily same as our world coords)
   onTouchesBegan: function(touches, event) {},
@@ -252,19 +253,19 @@ var GameLayer = cc.Layer.extend({
     if (ball.velocity.x > 0 && cc.rectContainsPoint(r2, cc.p(p1.x + r1.width / 2.0, p1.y))) {
       // ball.velocity.x = -Math.abs(ball.velocity.x);
       ball.velocity.x *= -1;
-      ball.setPosition(ball.getPrevPosition().x, p1.y);
+      ball.setPosition(ball.prevPosition.x, p1.y);
     } else if (ball.velocity.x < 0 && cc.rectContainsPoint(r2, cc.p(p1.x - r1.width / 2.0, p1.y))) {
       // ball.velocity.x = Math.abs(ball.velocity.x);
       ball.velocity.x *= -1;
-      ball.setPosition(ball.getPrevPosition().x, p1.y);
+      ball.setPosition(ball.prevPosition.x, p1.y);
     } else if (ball.velocity.y > 0 && cc.rectContainsPoint(r2, cc.p(p1.x, p1.y + r1.height / 2.0))) {
       // ball.velocity.y = -Math.abs(ball.velocity.y);
       ball.velocity.y *= -1;
-      ball.setPosition(p1.x, ball.getPrevPosition().y);
+      ball.setPosition(p1.x, ball.prevPosition.y);
     } else if (ball.velocity.y < 0 && cc.rectContainsPoint(r2, cc.p(p1.x, p1.y - r1.height / 2.0))) {
       // ball.velocity.y = Math.abs(ball.velocity.y);
       ball.velocity.y *= -1;
-      ball.setPosition(p1.x, ball.getPrevPosition().y);
+      ball.setPosition(p1.x, ball.prevPosition.y);
     }
 
     cc.AudioEngine.getInstance().playEffect(snd_brickDeath);
@@ -287,8 +288,10 @@ var GameLayer = cc.Layer.extend({
       if (brick && brick.isActive) {
         if (cc.rectIntersectsRect(ball.getBoundingBox(), brick.getBoundingBox())) {
 
+          // TODO: send event to increase score instead
           this.score += brick.getValue();
           this.hudLayer.refresh(this);
+
 
           this.bounceOffBrick(ball, brick);
 
@@ -448,9 +451,8 @@ var GameLayer = cc.Layer.extend({
   spawnBall: function() {
     var ball = Ball.create();
     if (ball) {
-      ball.init();
-      this.boardLayer.addChild(ball, ZORDER_BALL);
       this.balls.push(ball);
+      this.boardLayer.addChild(ball, ZORDER_BALL);
     }
   },
 
@@ -462,7 +464,6 @@ var GameLayer = cc.Layer.extend({
     }
 
     this.balls = [];
-
     this.spawnBall();
 
     // add back in countdown

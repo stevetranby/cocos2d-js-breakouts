@@ -19,6 +19,7 @@ var Brick = cc.Sprite.extend({
   init: function(type) {
     var textureRect = brickTextureRects[type];
     this._super(img_tiles, textureRect);
+    return true;
   },
 
   getValue: function() {

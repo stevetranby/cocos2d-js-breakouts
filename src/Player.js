@@ -5,10 +5,8 @@ var Player = cc.Sprite.extend({
 
   init: function() {
     this._super(img_tiles, cc.rect(0, 16 * 4, 48, 16));
-
     var ws = cc.Director.getInstance().getWinSize();
     this.setPosition(cc.p(ws.width / 2.0, 40));
-
     return true;
   },
 

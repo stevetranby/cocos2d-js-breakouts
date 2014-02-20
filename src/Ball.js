@@ -2,43 +2,65 @@ var Ball = cc.Sprite.extend({
 
   type: "ball",
   isActive: true,
-  speed: 170.0/60.0,
+  speed: 170.0 / 60.0,
   velocity: cc.p(0, 0),
   prevPosition: cc.p(0, 0),
 
   //////
 
-  getPrevPosition: function() {
-    return this.prevPosition;
-  },
-
-  //////
-
   init: function() {
-    this._super(img_tiles, cc.rect(48, 64, 16, 16));
-
     // TODO: need to put into global, or reference gameLayer, or pass into init
     this.boundaryRect = cc.rect(48, 48, 320 - 48, 416 - 48);
-    this.reset();
+
+    this._super(img_tiles, cc.rect(48, 64, 16, 16));
+
+    this.startAnimation();
+
     return true;
   },
 
+  // NOTE: this._super() is crucial to make sure you add to overridden methods
+  //  * unless you know what you're doing. actions won't start if you
+  //    implement onEnter, but forget this._super() call, for example
   onEnter: function() {
-    this.reset();
+    this._super();
+    this.resetBall();
   },
 
-  reset: function() {
-    var ws = cc.Director.getInstance().getWinSize();
+  // refactor into a cocos2d helper class
+  startAnimation: function() {
+    // create action for sprite frame-based animation
+    // (could also change texture rect in the update method after timer 
+    //  expires which is basically what the action does for you, depends
+    //  on how much control you want)
 
+    // TODO: show many ways, as well as others like separate images, 
+    //       import from json anim config file
+
+    this.stopActionByTag(101);
+    var animFrames = [
+      cc.SpriteFrame.create(img_tiles, cc.rect(48, 64, 16, 16)),
+      cc.SpriteFrame.create(img_tiles, cc.rect(48 + 16, 64, 16, 16)),
+      cc.SpriteFrame.create(img_tiles, cc.rect(48 + 16 * 2, 64, 16, 16)),
+      cc.SpriteFrame.create(img_tiles, cc.rect(48 + 16 * 3, 64, 16, 16))
+    ];
+    var anim = cc.Animation.create(animFrames, 0.1);
+    var animAction = cc.RepeatForever.create(cc.Animate.create(anim));
+    var loopAction = cc.RepeatForever.create(animAction);
+    loopAction.setTag(101);
+    this.runAction(loopAction);
+  },
+
+  resetBall: function() {
+    var ws = cc.Director.getInstance().getWinSize();
     //var xstart = getRandomRange(this.boundaryRect.x, this.boundaryRect.width);
     var xstart = 74;
     this.startPosition = cc.p(xstart, 120);
     this.setPosition(this.startPosition);
-
     this.velocity = cc.p(this.speed, -this.speed);
   },
 
-  update: function() {
+  update: function(dt) {
     if (this.isActive) {
       this.prevPosition = this.getPosition();
       var newPos = cc.pAdd(this.prevPosition, this.velocity);
@@ -60,7 +82,7 @@ var Ball = cc.Sprite.extend({
     // -1 at far left of player paddle, 1 at far right
     var dx = (pBall.x - pPlayer.x);
     var halfWidth = (sizePlayer.width / 2.0);
-    var ratio =  dx / halfWidth;
+    var ratio = dx / halfWidth;
 
     // console.log(dx, halfWidth, ratio);
     this.velocity = cc.p(this.speed * ratio, -this.velocity.y);
@@ -72,7 +94,6 @@ var Ball = cc.Sprite.extend({
   },
 
 });
-
 
 Ball.create = function() {
   var node = new Ball();
