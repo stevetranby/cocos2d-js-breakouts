@@ -165,7 +165,8 @@ var GameLayer = cc.Layer.extend({
   movePlayer: function(location) {
     var newPosition = cc.p(location.x, this.player.getPosition().y);
     this.player.setPosition(newPosition);
-  }
+  },
+
   onMouseMoved: function(event) {
     this.movePlayer(event.getLocation());
   },
