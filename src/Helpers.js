@@ -1,5 +1,5 @@
 // Author: Steve Tranby
-// Desc: 
+// Desc:
 // Notes: need to refactor into library
 
 // Create enum without specifying actual values

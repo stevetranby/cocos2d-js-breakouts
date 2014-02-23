@@ -6,7 +6,7 @@ var brickTextureRects = {
 };
 
 // TODO: add toggle for supporting both frame animation as well as the current fadeout/scale actions
-// 
+//
 var Brick = cc.Sprite.extend({
 
   type: "brick",

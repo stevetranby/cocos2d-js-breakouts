@@ -11,9 +11,9 @@ var HudLayer = cc.Layer.extend({
   countdownSprite: null,
 
   init: function(pGameLayer) {
-    
+
     this._super();
-    
+
     this.gameLayer = pGameLayer;
 
     var ws = cc.Director.getInstance().getWinSize();
@@ -34,7 +34,7 @@ var HudLayer = cc.Layer.extend({
   onEnter: function() {
     this._super();
   },
-  
+
   // TODO: should only update on change
   refresh: function(game) {
     if(game.countdown >= 1.0) {

@@ -30,11 +30,11 @@ var Ball = cc.Sprite.extend({
   // refactor into a cocos2d helper class
   startAnimation: function() {
     // create action for sprite frame-based animation
-    // (could also change texture rect in the update method after timer 
+    // (could also change texture rect in the update method after timer
     //  expires which is basically what the action does for you, depends
     //  on how much control you want)
 
-    // TODO: show many ways, as well as others like separate images, 
+    // TODO: show many ways, as well as others like separate images,
     //       import from json anim config file
 
     this.stopActionByTag(101);

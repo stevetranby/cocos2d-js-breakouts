@@ -66,8 +66,12 @@ var GameLayer = cc.Layer.extend({
       this.setKeyboardEnabled(true);
 
     // TODO: add mouse support for hover move (when no buttons down)
-    if (this.setMouseEnabled)
-      this.setMouseEnabled(true);
+    if( 'touches' in sys.capabilities ) {
+        this.setTouchEnabled(true);
+    }
+    if( 'mouse' in sys.capabilities ) {
+        this.setMouseEnabled(true);
+    }
 
     this.scheduleUpdate();
   },
@@ -114,7 +118,7 @@ var GameLayer = cc.Layer.extend({
     }
 
     // remove all inactives
-    // TODO: fill up arrays of objects to destroy and remove in single pass 
+    // TODO: fill up arrays of objects to destroy and remove in single pass
     //        using reverse iteration and .splice()
     for (var i = 0; i < this.balls.length; i++) {
       var ball = this.balls[i];
@@ -138,7 +142,7 @@ var GameLayer = cc.Layer.extend({
 
 
   //////////////////////////////////////////////////////
-  /// Input 
+  /// Input
   //////////////////////////////////////////////////////
 
   onKeyDown: function(e) {
@@ -150,7 +154,7 @@ var GameLayer = cc.Layer.extend({
 
     // REFACTOR
     // TODO: simulate keypress instead and handle in update method
-    // I would prefer to not handle input here, rather add state to trigger keypress event instead 
+    // I would prefer to not handle input here, rather add state to trigger keypress event instead
     this.onKeyPress(e);
   },
 
@@ -176,11 +180,15 @@ var GameLayer = cc.Layer.extend({
   onScrollWheel: function(event) {},
 
   // touches contains location in screen coords (luckily same as our world coords)
-  onTouchesBegan: function(touches, event) {},
+  onTouchesBegan: function(touches, event) {
+    this.movePlayer(touches[0].getLocation());
+  },
   onTouchesMoved: function(touches, event) {
     this.movePlayer(touches[0].getLocation());
   },
-  onTouchesEnded: function(touches, event) {},
+  onTouchesEnded: function(touches, event) {
+    this.movePlayer(touches[0].getLocation());
+  },
   onTouchesCancelled: function(touches, event) {},
 
   //////////////////////////////////////////////////////
@@ -272,14 +280,14 @@ var GameLayer = cc.Layer.extend({
   },
 
   // TODO: refactor into brick class
-  // 
-  // Support better collision detection with multiple bounce 
+  //
+  // Support better collision detection with multiple bounce
   // http://codeincomplete.com/posts/2011/6/12/collision_detection_in_breakout/
-  // 
+  //
   // or use Box2d
-  // 
+  //
   // better yet just support all three: Dumb, Recursive, Physics
-  // 
+  //
   checkCollisionsBricks: function(ball) {
     // check bricks
     var nBricks = this.bricks.length;

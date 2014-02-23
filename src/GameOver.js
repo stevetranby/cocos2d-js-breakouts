@@ -1,5 +1,5 @@
 var GameOverLayer = cc.LayerColor.extend({
-  
+
   init: function(color) {
     this._super(color);
     console.log("test");
