@@ -23,6 +23,9 @@ var GameLayer = cc.Layer.extend({
 
   isCountdown: true,
 
+  space: null, // physics world space
+  usingPhysics: false,
+
   init: function() {
 
     // for clarity
@@ -35,10 +38,24 @@ var GameLayer = cc.Layer.extend({
     // reset level in case we're coming from game over scene
     G.currentLevel = 0;
 
-    var usingTiles = false;
-    if (usingTiles) {
-      // TODO: change tiles
-      console.log("using tiles");
+    this.usingPhysics = (location.search.indexOf("usephysics") != -1);
+    this.usingTiles = (location.search.indexOf("usetiles") != -1);
+
+
+    if (this.usingTiles) {
+      // console.log("using tiles");
+      this.boardTilesLayer = cc.TMXTiledMap.create(tmx_bgTmx);
+      this.boardTilesLayer.setAnchorPoint(cc.p(0.5, 0.5));
+      this.boardTilesLayer.setPosition(cc.p(ws.width / 2.0, ws.height / 2.0));
+      this.boardTilesLayer.ignoreAnchorPointForPosition(false);
+      this.addChild(this.boardTilesLayer, ZORDER_BOARD);
+
+      this.boardLayer = cc.Layer.create();
+      // this.boardLayer.setContentSize(cc.size(ws.width,ws.height));
+      this.boardLayer.setAnchorPoint(cc.p(0.5, 0.5));
+      this.boardLayer.setPosition(cc.p(ws.width / 2.0, ws.height / 2.0));
+      this.boardLayer.ignoreAnchorPointForPosition(false);
+      this.addChild(this.boardLayer, ZORDER_BOARD);
     } else {
       this.boardLayer = cc.Sprite.create(img_bgImage);
       this.boardLayer.setAnchorPoint(cc.p(0.5, 0.5));
@@ -66,11 +83,11 @@ var GameLayer = cc.Layer.extend({
       this.setKeyboardEnabled(true);
 
     // TODO: add mouse support for hover move (when no buttons down)
-    if( 'touches' in sys.capabilities ) {
-        this.setTouchEnabled(true);
+    if ('touches' in sys.capabilities) {
+      this.setTouchEnabled(true);
     }
-    if( 'mouse' in sys.capabilities ) {
-        this.setMouseEnabled(true);
+    if ('mouse' in sys.capabilities) {
+      this.setMouseEnabled(true);
     }
 
     this.scheduleUpdate();
