@@ -24,11 +24,17 @@ var HudLayer = cc.Layer.extend({
     this.infoLabel.setPosition(cc.p(ws.width/2.0, 0));
     this.addChild(this.infoLabel);
 
-    this.countdownLabel = cc.LabelTTF.create("3", "Arial", 72.0);
-    this.countdownLabel.setColor(cc.BLACK);
-    this.countdownLabel.setAnchorPoint(cc.p(0.5, 0.5));
-    this.countdownLabel.setPosition(cc.p(ws.width/2.0, ws.height/3.0));
-    this.addChild(this.countdownLabel);
+    // this.countdownLabel = cc.LabelTTF.create("3", "Arial", 72.0);
+    // this.countdownLabel.setColor(cc.BLACK);
+    // this.countdownLabel.setAnchorPoint(cc.p(0.5, 0.5));
+    // this.countdownLabel.setPosition(cc.p(ws.width/2.0, ws.height/3.0));
+    // this.addChild(this.countdownLabel);
+
+    this.countdownSpriteFrames = [
+      cc.rect(0,6*16,32,48),
+      cc.rect(1*32,6*16,32,48),
+      cc.rect(2*32,6*16,32,48),
+    ];
   },
 
   onEnter: function() {
@@ -38,10 +44,23 @@ var HudLayer = cc.Layer.extend({
   // TODO: should only update on change
   refresh: function(game) {
     if(game.countdown >= 1.0) {
-      this.countdownLabel.setString("" + Math.floor(game.countdown));
+      var frameRect = this.countdownSpriteFrames[3-Math.floor(game.countdown)];
+      if(! this.countdownSprite) {
+        console.log("adding countdown sprite");
+        var ws = cc.Director.getInstance().getWinSize();
+        var center = cc.p(ws.width/2.0, ws.height/2.0);
+        this.countdownSprite = cc.Sprite.create(img_tiles);
+        this.countdownSprite.setPosition(center);
+        this.addChild(this.countdownSprite, ZORDER_HUD);
+      }
+      this.countdownSprite.setTextureRect(frameRect);
+      // this.countdownLabel.setString("" + Math.floor(game.countdown));
     } else {
-      this.countdownLabel.setString("");
-      //this.countdownLabel.removeFromParent();
+      if(this.countdownSprite) {
+        this.countdownSprite.removeFromParent();
+        this.countdownSprite = null;
+      }
+      // this.countdownLabel.setString("");
     }
 
     var level = game.currentLevel + 1;

@@ -6,7 +6,7 @@ var Player = cc.Sprite.extend({
   init: function() {
     this._super(img_tiles, cc.rect(0, 16 * 4, 48, 16));
     var ws = cc.Director.getInstance().getWinSize();
-    this.setPosition(cc.p(ws.width / 2.0, 40));
+    this.setPosition(cc.p(ws.width / 2.0, 40.0));
     return true;
   },
 
@@ -18,6 +18,7 @@ var Player = cc.Sprite.extend({
         // back to normal size
         console.log("player back to normal size");
         this.setTextureRect(cc.rect(0, 16 * 4, 48, 16));
+        cc.AudioEngine.getInstance().playEffect(snd_recover);
       }
     }
   },

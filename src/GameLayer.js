@@ -41,7 +41,6 @@ var GameLayer = cc.Layer.extend({
     this.usingPhysics = (location.search.indexOf("usephysics") != -1);
     this.usingTiles = (location.search.indexOf("usetiles") != -1);
 
-
     if (this.usingTiles) {
       // console.log("using tiles");
       this.boardTilesLayer = cc.TMXTiledMap.create(tmx_bgTmx);
@@ -60,7 +59,7 @@ var GameLayer = cc.Layer.extend({
       this.boardLayer = cc.Sprite.create(img_bgImage);
       this.boardLayer.setAnchorPoint(cc.p(0.5, 0.5));
       this.boardLayer.setPosition(cc.p(ws.width / 2.0, ws.height / 2.0));
-      this.boardLayer.ignoreAnchorPointForPosition(false);
+      //this.boardLayer.ignoreAnchorPointForPosition(false);
       this.addChild(this.boardLayer, ZORDER_BOARD);
     }
 
@@ -257,7 +256,6 @@ var GameLayer = cc.Layer.extend({
         this.lives--;
         if (this.lives > 0) {
           this.resetGame();
-          // TODO: remove from balls array
         } else {
           this.onGameOver();
         }
@@ -365,7 +363,7 @@ var GameLayer = cc.Layer.extend({
     var nBricks = this.bricks.length;
     for (var j = nBricks - 1; j >= 0; j--) {
       var brick = this.bricks[j];
-      if (brick && brick.isActive) {
+      if (brick && brick.isActive && !brick.isDying) {
         // TODO: shrink ball bounding box, or implement circle to rect intersect
         var dist = cc.pDistance(ball.getPosition(), brick.getPosition());
         if (dist < closestDist && cc.rectIntersectsRect(ball.getBoundingBox(), brick.getBoundingBox())) {
@@ -393,18 +391,10 @@ var GameLayer = cc.Layer.extend({
         powerup.init(type);
         powerup.setPosition(closestBrick.getPosition());
         this.powerups.push(powerup);
-        this.addChild(powerup, ZORDER_BALL);
+        this.boardLayer.addChild(powerup, ZORDER_BALL);
       }
 
-
-      var fade = cc.FadeOut.create(0.75);
-      var scale = cc.ScaleTo.create(0.25, 0.75);
-      var seq = cc.Sequence.create(scale, cc.RemoveSelf.create());
-      closestBrick.runAction(seq);
-      closestBrick.runAction(fade);
-      closestBrick.isActive = false;
-      // should remove entities at end of frame if inactive
-      // this.closestBrick.splice(j, 1);
+      closestBrick.destroy();
 
       return;
     }
@@ -415,12 +405,17 @@ var GameLayer = cc.Layer.extend({
     var nBalls = this.balls.length;
     for (var i = 0; i < nBalls; i++) {
       var ball = this.balls[i];
-      if (!ball || !ball.isActive)
+      if (!ball || !ball.isActive || ball.isDying)
         continue;
 
-      // ball collides into paddle at bottom center (create a smaller bounding box)
-      var bottomCenter = cc.p(ball.getPosition().x, ball.getPosition().y - ball.getContentSize().height / 2.0);
-      if (cc.rectContainsPoint(this.player.getBoundingBox(), bottomCenter)) {
+      // // ball collides into paddle at bottom center (create a smaller bounding box)
+      // var bottomCenter = cc.p(ball.getPosition().x, ball.getPosition().y - ball.getContentSize().height / 2.0);
+      // if (cc.rectContainsPoint(this.player.getBoundingBox(), bottomCenter)) {
+
+      // ball collides into paddle
+      // var ballBBox = ball.getBoundingBox();
+      // var ballRect = cc.rect(ballBBox.x + 1, ballBBox.y + 1, ballBBox.width - 3, ballBBox.height - 3);
+      if (cc.rectIntersectsRect(this.player.getBoundingBox(), ball.getBoundingBox())) {
         ball.onCollisionPlayer(this.player);
       }
 
@@ -435,8 +430,11 @@ var GameLayer = cc.Layer.extend({
         continue;
 
       // ball collides into paddle at bottom center (create a smaller bounding box)
-      var bottomCenter = cc.p(powerup.getPosition().x, powerup.getPosition().y - powerup.getContentSize().height / 2.0);
-      if (cc.rectContainsPoint(this.player.getBoundingBox(), bottomCenter)) {
+      // var bottomCenter = cc.p(powerup.getPosition().x, powerup.getPosition().y - powerup.getContentSize().height / 2.0);
+      // if (cc.rectContainsPoint(this.player.getBoundingBox(), bottomCenter)) {
+      //
+      // powerup collides with paddle
+      if (cc.rectIntersectsRect(this.player.getBoundingBox(), powerup.getBoundingBox())) {
         if (powerup.type === POWERUP_TYPE_ADDBALL) {
           // spawn extra ball
           console.log("spawning extra ball");
@@ -456,7 +454,7 @@ var GameLayer = cc.Layer.extend({
 
   setupBoard: function() {
 
-    this.brickOffset = cc.p(64, 336);
+    this.brickOffset = cc.p(64, 344);
     this.boundaryRect = cc.rect(16, 16, 320 - 32, 416 - 32);
 
     this.boardLayer.removeAllChildren();
@@ -484,6 +482,10 @@ var GameLayer = cc.Layer.extend({
         var y = this.brickOffset.y - r * size.height;
 
         brick.setPosition(cc.p(x, y));
+
+        brick.setScale(0.0);
+        brick.runAction(cc.ScaleTo.create(0.5,1.0));
+
         this.boardLayer.addChild(brick);
         this.bricks.push(brick);
 
@@ -544,12 +546,18 @@ var GameLayer = cc.Layer.extend({
   },
 
   resetGame: function() {
+    for (var i = 0; i < this.powerups.length; i++) {
+      var powerup = this.powerups[i];
+      if (powerup)
+        powerup.removeFromParent();
+    }
+    this.powerups = [];
+
     for (var i = 0; i < this.balls.length; i++) {
       var ball = this.balls[i];
       if (ball)
         ball.removeFromParent();
     }
-
     this.balls = [];
     this.spawnBall();
 
@@ -557,8 +565,6 @@ var GameLayer = cc.Layer.extend({
     this.isCountdown = true;
     this.countdown = 3.5;
     this.hudLayer.refresh(this);
-
-    cc.AudioEngine.getInstance().playEffect(snd_recover);
   },
 
   prevLevel: function() {
@@ -576,12 +582,13 @@ var GameLayer = cc.Layer.extend({
       this.resetLevel();
     } else {
       // goto "MASTER" scene
+      var scene = MenuWin.scene();
+      cc.Director.getInstance().replaceScene(scene);
     }
   },
 
   onGameOver: function() {
-    var scene = GameOverLayer.scene();
-    // cc.Director.getInstance().replaceScene(cc.TransitionFade.create(1.0, scene));
+    var scene = MenuGameOver.scene();
     cc.Director.getInstance().replaceScene(scene);
   },
 });

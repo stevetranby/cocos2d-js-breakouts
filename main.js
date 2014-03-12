@@ -8,6 +8,7 @@ var PLATFORM_HTML5_WEBGL = 1 << 2;
 var PLATFORM_JSB_AND_WEBGL = PLATFORM_JSB | PLATFORM_HTML5_WEBGL;
 var PLATFORM_ALL = PLATFORM_JSB | PLATFORM_HTML5 | PLATFORM_HTML5_WEBGL;
 
+// cc.SPRITE_DEBUG_DRAW = 1;
 cc.FIX_ARTIFACTS_BY_STRECHING_TEXEL = 1;
 
 var cocos2dApp = cc.Application.extend({
@@ -58,7 +59,8 @@ var cocos2dApp = cc.Application.extend({
 });
 
 // APP LAUNCH
-var myApp = new cocos2dApp(GameLayer.scene);
+//var myApp = new cocos2dApp(GameLayer.scene);
+var myApp = new cocos2dApp(MenuStart.scene);
 
 var s_rcVisible = cc.rect(0, 0, 0, 0);
 var s_ptCenter = cc.p(0, 0);

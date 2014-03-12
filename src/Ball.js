@@ -54,8 +54,9 @@ var Ball = cc.Sprite.extend({
   resetBall: function() {
     var ws = cc.Director.getInstance().getWinSize();
     //var xstart = getRandomRange(this.boundaryRect.x, this.boundaryRect.width);
-    var xstart = 74;
-    this.startPosition = cc.p(xstart, 120);
+    var xstart = 58;
+    var ystart = 200;
+    this.startPosition = cc.p(xstart, ystart);
     this.setPosition(this.startPosition);
     this.velocity = cc.p(this.speed, -this.speed);
   },
@@ -74,10 +75,10 @@ var Ball = cc.Sprite.extend({
     //console.log("colliding with player");
     // find center of player
     var pBall = this.getPosition();
-    var sizeBall = this.getContentSize();
+    var sizeBall = this.getBoundingBox();
 
     var pPlayer = player.getPosition();
-    var sizePlayer = player.getContentSize();
+    var sizePlayer = player.getBoundingBox();
 
     // -1 at far left of player paddle, 1 at far right
     var dx = (pBall.x - pPlayer.x);
@@ -86,6 +87,9 @@ var Ball = cc.Sprite.extend({
 
     // console.log(dx, halfWidth, ratio);
     this.velocity = cc.p(this.speed * ratio, -this.velocity.y);
+
+    this.setPosition(pBall.x, pPlayer.y + sizePlayer.height/2.0 + sizeBall.height/2.0);
+    this.prevPosition = this.getPosition();
   },
 
   // determineBounceVelocity - from other implementations of breakouts
