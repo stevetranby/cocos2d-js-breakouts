@@ -116,7 +116,7 @@ var GameLayer = cc.Layer.extend({
       var n = this.balls.length;
       for (var i = 0; i < n; i++) {
         var ball = this.balls[i];
-        if(ball)
+        if (ball)
           ball.update(dt);
       }
 
@@ -272,25 +272,78 @@ var GameLayer = cc.Layer.extend({
 
     var p1 = ball.getPosition();
     var p2 = brick.getPosition();
-    var r1 = ball.getBoundingBox();
-    var r2 = brick.getBoundingBox();
+    var size1 = ball.getContentSize();
+    var size2 = brick.getContentSize();
+    var rect1 = ball.getBoundingBox();
+    var rect2 = brick.getBoundingBox();
 
-    if (ball.velocity.x > 0 && cc.rectContainsPoint(r2, cc.p(p1.x + r1.width / 2.0, p1.y))) {
-      // ball.velocity.x = -Math.abs(ball.velocity.x);
-      ball.velocity.x *= -1;
-      ball.setPosition(ball.prevPosition.x, p1.y);
-    } else if (ball.velocity.x < 0 && cc.rectContainsPoint(r2, cc.p(p1.x - r1.width / 2.0, p1.y))) {
-      // ball.velocity.x = Math.abs(ball.velocity.x);
-      ball.velocity.x *= -1;
-      ball.setPosition(ball.prevPosition.x, p1.y);
-    } else if (ball.velocity.y > 0 && cc.rectContainsPoint(r2, cc.p(p1.x, p1.y + r1.height / 2.0))) {
-      // ball.velocity.y = -Math.abs(ball.velocity.y);
-      ball.velocity.y *= -1;
-      ball.setPosition(p1.x, ball.prevPosition.y);
-    } else if (ball.velocity.y < 0 && cc.rectContainsPoint(r2, cc.p(p1.x, p1.y - r1.height / 2.0))) {
-      // ball.velocity.y = Math.abs(ball.velocity.y);
-      ball.velocity.y *= -1;
-      ball.setPosition(p1.x, ball.prevPosition.y);
+    // get which quadrant
+    var dx = p1.x - p2.x;
+    var dy = p1.y - p2.y;
+
+    console.log(size1, size2, p1, p2);
+
+    var maxDist = size1.width * 0.9;
+
+    // top left
+    if (dx < 0 && dy >= 0) {
+      // is within ball radius of left side
+      var dist = cc.pDistance(p1, cc.p(p2.x - size2.width/2.0, p2.y));
+      console.log(dist);
+      if (dist < maxDist) {
+        console.log("left side of ball");
+        ball.velocity.x *= -1;
+        ball.setPosition(ball.prevPosition.x, p1.y);
+      } else {
+        console.log("top of ball");
+        ball.velocity.y *= -1;
+        ball.setPosition(p1.x, ball.prevPosition.y);
+      }
+    }
+    // top right
+    else if (dx >= 0 && dy >= 0) {
+      // is within ball radius of left side
+      var dist = cc.pDistance(p1, cc.p(p2.x + size2.width/2.0, p2.y));
+      console.log(dist);
+      if (dist < maxDist) {
+         console.log("right side of ball");
+        ball.velocity.x *= -1;
+        ball.setPosition(ball.prevPosition.x, p1.y);
+      } else {
+        console.log("top of ball");
+        ball.velocity.y *= -1;
+        ball.setPosition(p1.x, ball.prevPosition.y);
+      }
+    }
+    // bot left
+    else if (dx < 0 && dy < 0) {
+      // is within ball radius of left side
+      var dist = cc.pDistance(p1, cc.p(p2.x - size2.width/2.0, p2.y));
+      console.log(dist);
+      if (dist < maxDist) {
+        console.log("left side of ball");
+        ball.velocity.x *= -1;
+        ball.setPosition(ball.prevPosition.x, p1.y);
+      } else {
+        console.log("bottom of ball");
+        ball.velocity.y *= -1;
+        ball.setPosition(p1.x, ball.prevPosition.y);
+      }
+    }
+    // bot right
+    else if (dx >= 0 && dy < 0) {
+      // is within ball radius of right side
+      var dist = cc.pDistance(p1, cc.p(p2.x + size2.width/2.0, p2.y));
+      console.log(dist);
+      if (dist < maxDist) {
+        console.log("right side of ball");
+        ball.velocity.x *= -1;
+        ball.setPosition(ball.prevPosition.x, p1.y);
+      } else {
+        console.log("bottom of ball");
+        ball.velocity.y *= -1;
+        ball.setPosition(p1.x, ball.prevPosition.y);
+      }
     }
 
     cc.AudioEngine.getInstance().playEffect(snd_brickDeath);
@@ -307,44 +360,53 @@ var GameLayer = cc.Layer.extend({
   //
   checkCollisionsBricks: function(ball) {
     // check bricks
+    var closestBrick = null;
+    var closestDist = 99999;//Math.IntMax;
     var nBricks = this.bricks.length;
     for (var j = nBricks - 1; j >= 0; j--) {
       var brick = this.bricks[j];
       if (brick && brick.isActive) {
-        if (cc.rectIntersectsRect(ball.getBoundingBox(), brick.getBoundingBox())) {
-
-          // TODO: send event to increase score instead
-          this.score += brick.getValue();
-          this.hudLayer.refresh(this);
-
-
-          this.bounceOffBrick(ball, brick);
-
-          // destroy brick
-          //TODO: refactor to brick.destroy();
-
-          if (brick.hasPowerup || brick.hasPowerdown) {
-            // spawn powerup
-            var powerup = new Powerup();
-            var type = brick.hasPowerup ? POWERUP_TYPE_ADDBALL : POWERUP_TYPE_SHRINK;
-            powerup.init(type);
-            powerup.setPosition(brick.getPosition());
-            this.powerups.push(powerup);
-          }
-
-
-          var fade = cc.FadeOut.create(0.75);
-          var scale = cc.ScaleTo.create(0.25, 0.75);
-          var seq = cc.Sequence.create(scale, cc.RemoveSelf.create());
-          brick.runAction(seq);
-          brick.runAction(fade);
-          brick.isActive = false;
-          // should remove entities at end of frame if inactive
-          // this.bricks.splice(j, 1);
-
-          return;
+        // TODO: shrink ball bounding box, or implement circle to rect intersect
+        var dist = cc.pDistance(ball.getPosition(), brick.getPosition());
+        if (dist < closestDist && cc.rectIntersectsRect(ball.getBoundingBox(), brick.getBoundingBox())) {
+          closestBrick = brick;
+          closestDist = dist;
         }
       }
+    }
+
+    if(closestBrick) {
+      // TODO: send event to increase score instead
+      this.score += closestBrick.getValue();
+      this.hudLayer.refresh(this);
+
+
+      this.bounceOffBrick(ball, closestBrick);
+
+      // destroy brick
+      //TODO: refactor to closestBrick.destroy();
+
+      if (closestBrick.hasPowerup || closestBrick.hasPowerdown) {
+        // spawn powerup
+        var powerup = new Powerup();
+        var type = closestBrick.hasPowerup ? POWERUP_TYPE_ADDBALL : POWERUP_TYPE_SHRINK;
+        powerup.init(type);
+        powerup.setPosition(closestBrick.getPosition());
+        this.powerups.push(powerup);
+        this.addChild(powerup, ZORDER_BALL);
+      }
+
+
+      var fade = cc.FadeOut.create(0.75);
+      var scale = cc.ScaleTo.create(0.25, 0.75);
+      var seq = cc.Sequence.create(scale, cc.RemoveSelf.create());
+      closestBrick.runAction(seq);
+      closestBrick.runAction(fade);
+      closestBrick.isActive = false;
+      // should remove entities at end of frame if inactive
+      // this.closestBrick.splice(j, 1);
+
+      return;
     }
   },
 
@@ -394,7 +456,7 @@ var GameLayer = cc.Layer.extend({
 
   setupBoard: function() {
 
-    this.brickOffset = cc.p(64, 200);
+    this.brickOffset = cc.p(64, 336);
     this.boundaryRect = cc.rect(16, 16, 320 - 32, 416 - 32);
 
     this.boardLayer.removeAllChildren();
@@ -419,7 +481,7 @@ var GameLayer = cc.Layer.extend({
 
         var size = brick.getContentSize();
         var x = this.brickOffset.x + c * size.width;
-        var y = this.brickOffset.y + r * size.height;
+        var y = this.brickOffset.y - r * size.height;
 
         brick.setPosition(cc.p(x, y));
         this.boardLayer.addChild(brick);
