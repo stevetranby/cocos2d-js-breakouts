@@ -18,7 +18,7 @@ var HudLayer = cc.Layer.extend({
 
     var ws = cc.Director.getInstance().getWinSize();
 
-    this.infoLabel = cc.LabelTTF.create("lives: n/a score: n/a level: n/a", "Helvetica, Arial", 14.0);
+    this.infoLabel = cc.LabelTTF.create("lives: n/a score: n/a level: n/a", "Helvetica, Arial", 20.0);
     this.infoLabel.setColor(cc.BLACK);
     this.infoLabel.setAnchorPoint(cc.p(0.5, 0));
     this.infoLabel.setPosition(cc.p(ws.width/2.0, 0));

@@ -4,13 +4,13 @@
 (function () {
     var d = document;
     var c = {
-        COCOS2D_DEBUG:1, //0 to turn debug off, 1 for basic debug, and 2 for full debug
+        COCOS2D_DEBUG:0, //0 to turn debug off, 1 for basic debug, and 2 for full debug
         box2d:false,
         chipmunk:false,
-        showFPS:true,
+        showFPS:false,
         loadExtension:true,
         frameRate:60,
-        renderMode:0, //Choose of RenderMode: 0(default), 1(Canvas only), 2(WebGL only)
+        renderMode:1, //Choose of RenderMode: 0(default), 1(Canvas only), 2(WebGL only)
         tag:'gameCanvas', //the dom element to run cocos2d on
         //engineDir:'../../../cocos2d/',
         SingleEngineFile:'lib/Cocos2d-html5-v2.2.2.min.js',
