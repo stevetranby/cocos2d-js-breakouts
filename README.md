@@ -2,7 +2,11 @@
 
 A Cocos2d-html implementation of the breakouts tutorial game.
 
-All of the other implementations are up and playable at: http://jsbreakouts.org/
+Play Game<br />
+http://stevetranby.github.io/cocos2d-js-breakouts/
+
+All of the other implementations are archived:<br />
+http://jsbreakouts.org/
 
 ## Overview
 
